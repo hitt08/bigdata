@@ -11,15 +11,15 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.Reducer.Context;
 
 public class FilterReducer extends Reducer<LongWritable, Text, LongWritable, Text> {
-	private Text _value = new Text();
 	private int numRecords = 0;
-	private String dummyRecord = "D\n"; // [D\n Article_Title Page_Rank #ofOutlinks\n]
 	
 	//key-> GroupID
 	//value-> Article ID + Article Title + Main
 	public void reduce(LongWritable key, Iterable<Text> values, Context context)
 			throws IOException, InterruptedException {
-		
+		String dummyRecord = "D\n"; // [D\n Article_Title Page_Rank #ofOutlinks\n]
+		String _valueList = "";
+		//Dummy Record Creation
 		for (Iterator<Text> it = values.iterator(); it.hasNext();) {
 			Text temp_text = it.next(); //Article Value (without date)
 			String[] temp_line = temp_text.toString().split("\n");
@@ -29,10 +29,9 @@ public class FilterReducer extends Reducer<LongWritable, Text, LongWritable, Tex
 			dummyRecord += temp_line[1] +" "+ temp_pagerank +" "+temp_outLinks+"\n";
 			//key -> GroupID
 			//value-> Article ID + Article Title + Main + PageRank + #Outlinks
-			_value.set(temp_text.toString() + "\n" + temp_pagerank + "\n" + temp_outLinks);
-			context.write(key, _value);
+			_valueList += temp_text.toString() + "\n" + temp_pagerank + "\n" + temp_outLinks;
 		}
-		System.out.println("DUMMY RECORD : "+ dummyRecord);
-		context.getConfiguration().set("pagerank.dummyrecord", dummyRecord);
+		
+		context.write(key, new Text(dummyRecord + _valueList));
 	}
 }
