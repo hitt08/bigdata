@@ -92,7 +92,6 @@ public class FilterMapper extends org.apache.hadoop.mapreduce.Mapper<LongWritabl
 			}
 			i++;
 		}
-			
 
 		if (!skip_record) {
 			
