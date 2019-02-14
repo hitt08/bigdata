@@ -21,6 +21,7 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.Reducer.Context;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
+import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.hadoop.util.Tool;
@@ -31,31 +32,66 @@ public class PageRank extends Configured implements Tool{
 	@Override
 	public int run(String[] args) throws Exception {
 		// TODO Auto-generated method stub
-		Job job = Job.getInstance(getConf(), "PageRank");
-		job.setJarByClass(PageRank.class);
 		
-		job.setMapperClass(FilterMapper.class);
-		//job.setPartitionerClass(MyPartitioner.class);
-		job.setMapOutputKeyClass(LongWritable.class);
-		job.setMapOutputValueClass(Text.class);
+		//Filtering Job
+		Job filter_job = Job.getInstance(getConf(), "Filter_PageRank");
+		int file_index = 0;
+		boolean jobDone = false;
+		filter_job.setJarByClass(PageRank.class);
 		
-		job.setCombinerClass(FilterCombiner.class);
-		job.setReducerClass(FilterReducer.class);
+		filter_job.setMapperClass(FilterMapper.class);
+		//filter_job.setPartitionerClass(MyPartitioner.class);
+		filter_job.setMapOutputKeyClass(LongWritable.class);
+		filter_job.setMapOutputValueClass(Text.class);
 		
-		job.setInputFormatClass(InputFormat.class);
-		job.setOutputFormatClass(TextOutputFormat.class);
+		filter_job.setReducerClass(FilterReducer.class);
+		//filter_job.setNumReduceTasks(4);
 		
-		FileInputFormat.setInputPaths(job, new Path(args[0]));
-		FileOutputFormat.setOutputPath(job, new Path(args[1]));
+		filter_job.setInputFormatClass(FilterInputFormat.class);
+		filter_job.setOutputFormatClass(TextOutputFormat.class);
 		
-		//Number of Iterations
-		job.getConfiguration().setInt("pagerank.iterations", 1);
+		FileInputFormat.setInputPaths(filter_job, new Path(args[0]));
+		FileOutputFormat.setOutputPath(filter_job, new Path(args[1] + (file_index)));
+
 		//Date
-		job.getConfiguration().set("pagerank.date", args[3]);
-		//DummyRecord
-		job.getConfiguration().set("pagerank.dummyrecord", "D\n");
+		filter_job.getConfiguration().set("pagerank.date", args[3]);
 		
-		return job.waitForCompletion(true) ? 0 : 1;
+		
+		if(filter_job.waitForCompletion(true)) {
+			
+			//Number of Iterations
+		
+			int _it = 0;
+			do {
+			Job main_job = Job.getInstance(getConf(), "Main_PageRank" + _it);
+			main_job.setJarByClass(PageRank.class);
+			
+			main_job.setMapperClass(PageRankMapper.class);
+			main_job.setMapOutputKeyClass(Text.class);
+			main_job.setMapOutputValueClass(Text.class);
+			
+			main_job.setReducerClass(PageRankReducer.class);
+			//main_job.setNumReduceTasks(4);
+			
+			main_job.setInputFormatClass(TextInputFormat.class);
+			main_job.setOutputFormatClass(TextOutputFormat.class);
+			
+				FileInputFormat.setInputPaths(main_job, new Path(args[1] + file_index));
+				
+				if(_it + 1 == Integer.valueOf(args[2])) {
+					main_job.getConfiguration().setBoolean("pagerank.finalIteration", true);
+					FileOutputFormat.setOutputPath(main_job, new Path(args[1]));
+				}else {
+					main_job.getConfiguration().setBoolean("pagerank.finalIteration", false);
+					FileOutputFormat.setOutputPath(main_job, new Path(args[1] + (++file_index)));
+				}
+			
+				_it++;
+			jobDone = main_job.waitForCompletion(true);
+			}while( jobDone && _it < Integer.valueOf(args[2]));
+		}
+
+		return jobDone ? 0 : 1;
 		
 	}
 	public static void main(String[] args) throws Exception{
@@ -64,3 +100,7 @@ public class PageRank extends Configured implements Tool{
 	
 
 }
+
+
+
+//"Bad_Day"       6256952.803452841
