@@ -29,8 +29,9 @@ public class PageRankReducer extends Reducer<Text, Text, Text, Text> {
 	//Value -> Score
 	public void reduce(Text key, Iterable<Text> values, Context context)
 			throws IOException, InterruptedException {
-		
+		sum=0;
 		for (Iterator<Text> it = values.iterator(); it.hasNext();) {
+			
 			Text value_text = it.next(); //Article Value
 			String [] valuesplit = value_text.toString().split(separator);
 			if(valuesplit.length > 1) {
@@ -39,7 +40,7 @@ public class PageRankReducer extends Reducer<Text, Text, Text, Text> {
 			}
 			sum += Double.valueOf(valuesplit[0]);
 		}
-		
+		sum=0.15 + (0.85 * sum);
 		if(context.getConfiguration().getBoolean("pagerank.finalIteration", false)) {
 			//Final Round
 			//Key -> Title

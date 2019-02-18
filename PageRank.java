@@ -40,12 +40,10 @@ public class PageRank extends Configured implements Tool{
 		filter_job.setJarByClass(PageRank.class);
 		
 		filter_job.setMapperClass(FilterMapper.class);
-		//filter_job.setPartitionerClass(MyPartitioner.class);
 		filter_job.setMapOutputKeyClass(LongWritable.class);
 		filter_job.setMapOutputValueClass(Text.class);
 		
 		filter_job.setReducerClass(FilterReducer.class);
-		//filter_job.setNumReduceTasks(4);
 		
 		filter_job.setInputFormatClass(FilterInputFormat.class);
 		filter_job.setOutputFormatClass(TextOutputFormat.class);
@@ -71,7 +69,6 @@ public class PageRank extends Configured implements Tool{
 			main_job.setMapOutputValueClass(Text.class);
 			
 			main_job.setReducerClass(PageRankReducer.class);
-			//main_job.setNumReduceTasks(4);
 			
 			main_job.setInputFormatClass(TextInputFormat.class);
 			main_job.setOutputFormatClass(TextOutputFormat.class);

@@ -35,13 +35,23 @@ public class PageRankMapper extends org.apache.hadoop.mapreduce.Mapper<LongWrita
 			//CScore PScore\nMain
 			String [] valuesplit = secondLine.split(separator);
 			double currentScore = Double.valueOf(valuesplit[0].split(" ")[0]);
-			double previousScore = Double.valueOf(valuesplit[0].split(" ")[1]);	
-		if(valuesplit.length > 1) {
+			double previousScore = Double.valueOf(valuesplit[0].split(" ")[1]);
+			
+		/*if(valuesplit.length > 1) {
 			if(currentScore != previousScore) {
 				pageRankToOutlink(currentScore, valuesplit[1], context);
 			}
 			_value.set(String.valueOf(currentScore) + separator + valuesplit[1]);
-		}else _value.set(String.valueOf(currentScore));
+		}else _value.set(String.valueOf(currentScore)); */
+			
+			
+			if(valuesplit.length > 1) {
+				pageRankToOutlink(currentScore, valuesplit[1], context);
+				_value.set("0" + separator + valuesplit[1]);
+			}
+			else
+				_value.set("0");		
+			
 		}
 		//key -> Title
 		//Value -> CScore\nMain
@@ -52,8 +62,9 @@ public class PageRankMapper extends org.apache.hadoop.mapreduce.Mapper<LongWrita
 	public void pageRankToOutlink(double currentScore, String main, Context context) throws IOException, InterruptedException{
 		String[] outlink_articles = main.split(" "); //outlink articles in MAIN
 		
-		int temp_outLinks = outlink_articles.length - 1;
-		double temp_pagerank = 0.15 + (0.85 * (currentScore/temp_outLinks));
+		double temp_outLinks = outlink_articles.length - 1;
+		//double temp_pagerank = 0.15 + (0.85 * (currentScore/temp_outLinks));
+		double temp_pagerank = currentScore/temp_outLinks;
 		
 		//Sending self score to outlinks
 		for (int i=1; i< outlink_articles.length; i++) {
