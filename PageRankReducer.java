@@ -30,6 +30,7 @@ public class PageRankReducer extends Reducer<Text, Text, Text, Text> {
 	public void reduce(Text key, Iterable<Text> values, Context context)
 			throws IOException, InterruptedException {
 		sum=0;
+		Main="";
 		for (Iterator<Text> it = values.iterator(); it.hasNext();) {
 			
 			Text value_text = it.next(); //Article Value

@@ -29,7 +29,7 @@ public class PageRankMapper extends org.apache.hadoop.mapreduce.Mapper<LongWrita
 			//Initializing
 			
 			pageRankToOutlink(1, secondLine, context);
-			_value.set("1" + separator + secondLine);
+			_value.set("0" + separator + secondLine);
 			
 		}else {
 			//CScore PScore\nMain
