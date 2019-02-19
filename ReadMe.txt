@@ -67,4 +67,4 @@ Dates:
 2. 2007-01-01T00:00:00Z (run on sample)
 3. 2009-01-01T00:00:00Z (run on sample and larger)
 
-According to the "sample" results of the above tests, our output generated the correct results upto the 15th decimal point.
+According to the "sample" results of the above tests, our output generated the correct results upto at least 10th decimal point.
