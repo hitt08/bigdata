@@ -65,10 +65,8 @@ public class FilterInputFormat extends FileInputFormat<LongWritable, Text> {
 			if (!stillInChunk)
 				return false;
 			boolean status = readRecord(true);
-
 			Text intermediateText = new Text();
 
-			//value = new Text();
 			intermediateText.set(buffer.getData(), 0, buffer.getLength());
 			String[] tokenizer = intermediateText.toString().split("\n");	//Split the each article record for each tag per line
 			String[] revisionArray = tokenizer[0].split(" "); 				//Split the REVISION tag with space --> eg (REVISION 12 36302676 Anarchism 2006-01-23T02:39:36Z)

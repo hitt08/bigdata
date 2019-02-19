@@ -2,56 +2,45 @@ package mapreduce;
 
 import java.io.IOException;
 import java.util.*;
-import java.text.*;
-
-import org.apache.hadoop.io.IntWritable;
-import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
-import org.apache.hadoop.mapreduce.Reducer.Context;
-
-import ch.epfl.lamp.fjbg.JConstantPool.IntegerEntry;
 
 public class PageRankReducer extends Reducer<Text, Text, Text, Text> {
 	private Text _value = new Text();
-	private Text _key = new Text();
 	private double sum = 0;
 	private String Main = "";
-	//private double previousScore = 1;
 	private String separator = "--!--";
 	
-	//key -> Title
-	//value-> Score--!--Main
-	
-	//OR
-	
-	//key-> Title
-	//Value -> Score
-	public void reduce(Text key, Iterable<Text> values, Context context)
-			throws IOException, InterruptedException {
+	/*Input Key -> Title
+	 * 
+	 *Input Value-> Score--!--Main		
+	 *OR
+	 *Input Value -> Score		(For articles with no outlinks)*/
+	public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
 		sum=0;
 		Main="";
 		for (Iterator<Text> it = values.iterator(); it.hasNext();) {
 			
 			Text value_text = it.next(); //Article Value
-			String [] valuesplit = value_text.toString().split(separator);
-			if(valuesplit.length > 1) {
+			String [] valuesplit = value_text.toString().split(separator); //Separating Score and MAIN
+			if(valuesplit.length > 1) {	//Article with Outlinks
 				Main = valuesplit[1];
-				//previousScore = Double.valueOf(valuesplit[0]);
 			}
-			sum += Double.valueOf(valuesplit[0]);
+			sum += Double.valueOf(valuesplit[0]);	//Sum of all scores contributed by other articles
 		}
-		sum=0.15 + (0.85 * sum);
+		sum=0.15 + (0.85 * sum);	//Page rank Formula
+		
+		//Check for final round
 		if(context.getConfiguration().getBoolean("pagerank.finalIteration", false)) {
 			//Final Round
-			//Key -> Title
-			//Value -> CScore
+			//Output Key -> Title
+			//Output Value -> CScore
 			_value.set(String.valueOf(sum));
 		}else {
-		
-		//Key -> Title
-		//Value -> CScore--!--Main
-		_value.set(String.valueOf(sum) + separator + Main);
+			//For next round
+			//Output Key -> Title
+			//Output Value -> CScore--!--Main
+			_value.set(String.valueOf(sum) + separator + Main);
 		}
 		context.write(key, _value);
 	}

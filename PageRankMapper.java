@@ -10,59 +10,48 @@ public class PageRankMapper extends org.apache.hadoop.mapreduce.Mapper<LongWrita
 	private Text _key = new Text();
 	private String separator = "--!--";		//Separator for value fields
 
-	//Input Key -> Line# (Default from Text Input Formatter)
-	//
-	//Input Value -> ArticleTitle\tMain		(From Filter Reducer)
-	//OR
-	//Input Value -> ArticleTitle\tCScore--!--Main	(From Previous Round)
+	/*Input Key -> Line# (Default from Text Input Formatter)
+	*
+	* Input Value -> ArticleTitle\tMain		(From Filter Reducer)
+	* OR
+	* Input Value -> ArticleTitle\tCScore--!--Main	(From Previous Round)*/
 	public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {		
-		String []valuestr = value.toString().split("\t");
+		String []valuestr = value.toString().split("\t");	//Split Actual Key Value with tab
 		String secondLine = valuestr[1]; //Main OR CScore PScore--!--Main
 		
-		if(secondLine.charAt(0) == 'M') {
+		if(secondLine.charAt(0) == 'M') {	//If Input from Filter Reducer
 			//Initializing
-			
-			pageRankToOutlink(1, secondLine, context);
-			_value.set("0" + separator + secondLine);
-			
+			pageRankToOutlink(1, secondLine, context);		//Contributing Intial score of 1 to outlinks
+			_value.set("0" + separator + secondLine);		//Keeping self score as 0 with all outlink titles			
 		}else {
-			//CScore PScore\nMain
-			String [] valuesplit = secondLine.split(separator);
-			double currentScore = Double.valueOf(valuesplit[0]);//.split(" ")[0]);
-			//double previousScore = Double.valueOf(valuesplit[0].split(" ")[1]);
+			//Input from Previous Round
+			String [] valuesplit = secondLine.split(separator);  //CScore--!--Main
+			double currentScore = Double.valueOf(valuesplit[0]);
 			
-		/*if(valuesplit.length > 1) {
-			if(currentScore != previousScore) {
-				pageRankToOutlink(currentScore, valuesplit[1], context);
-			}
-			_value.set(String.valueOf(currentScore) + separator + valuesplit[1]);
-		}else _value.set(String.valueOf(currentScore)); */
-			
-			
-			if(valuesplit.length > 1) {
-				pageRankToOutlink(currentScore, valuesplit[1], context);
-				_value.set("0" + separator + valuesplit[1]);
+			if(valuesplit.length > 1) {		//If not target article i.e. Article with no outlinks
+				pageRankToOutlink(currentScore, valuesplit[1], context);	//Contributing pagerank score from previous round to outlinks
+				_value.set("0" + separator + valuesplit[1]);	//Keeping self score as 0 with all outlink titles
 			}
 			else
-				_value.set("0");		
+				_value.set("0");	//Article with no outlinks
 			
 		}
-		//key -> Title
-		//Value -> CScore\nMain
+		//Output key -> Title
+		//Output Value -> CScore\nMain
 		_key.set(valuestr[0]);
 		context.write(_key, _value);
 	}
 	
+	//Contribute self pagerank score with outlinks
 	public void pageRankToOutlink(double currentScore, String main, Context context) throws IOException, InterruptedException{
 		String[] outlink_articles = main.split(" "); //outlink articles in MAIN
 		
-		double temp_outLinks = outlink_articles.length - 1;
-		//double temp_pagerank = 0.15 + (0.85 * (currentScore/temp_outLinks));
-		double temp_pagerank = currentScore/temp_outLinks;
+		double temp_outLinks = outlink_articles.length - 1;	//All except "MAIN" tag
+		double temp_pagerank = currentScore/temp_outLinks;	//Score to contribute
 		
 		//Sending self score to outlinks
 		for (int i=1; i< outlink_articles.length; i++) {
-			_key.set(outlink_articles[i]);
+			_key.set(outlink_articles[i]);		//Outlink Article Title
 			_value.set(String.valueOf(temp_pagerank));
 			context.write(_key, _value);
 		}

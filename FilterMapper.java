@@ -35,26 +35,19 @@ public class FilterMapper extends org.apache.hadoop.mapreduce.Mapper<LongWritabl
 		StringTokenizer tokenizer = new StringTokenizer(value.toString(), "\n");	//Split value by "\n" for get different attributes of an article 
 		boolean skip_record = false;
 		
-		//while (tokenizer.hasMoreTokens()) {		//Loop
-			String line = tokenizer.nextToken();	//Get Article Timestamp as the first token
-			//Date formatting
-				try {
-					Date article_date = ISO_8601df.parse(line);		//Parse article timestamp
-
-					if (article_date.after(date_timestamp)) {		//Check if article timestamp is newer than input timestamp 
-						skip_record = true;		//Mark this record for skip
-					}
-
-				} catch (ParseException e) {
-					//Invalid Date
-					e.printStackTrace();
-					System.out.println("Exception in the map!\n"+ e.toString());
-					skip_record = true;		//Skip article revision with invalid timestamp
-				}
-
-		//	break;
-	//	}
-			
+		String line = tokenizer.nextToken();	//Get Article Timestamp as the first token
+		//Date formatting
+		try {
+			Date article_date = ISO_8601df.parse(line);		//Parse article timestamp
+			if (article_date.after(date_timestamp)) {		//Check if article timestamp is newer than input timestamp 
+				skip_record = true;		//Mark this record for skip
+			}
+		} catch (ParseException e) {
+			//Invalid Date
+			e.printStackTrace();
+			System.out.println("Exception in the map!\n"+ e.toString());
+			skip_record = true;		//Skip article revision with invalid timestamp
+		}			
 
 		if (!skip_record) {	//Write the article record into context if matches the date condition
 			//Ouput key -> Article ID
@@ -62,5 +55,4 @@ public class FilterMapper extends org.apache.hadoop.mapreduce.Mapper<LongWritabl
 			context.write(key, value);		//Same as input
 		}
 	}
-	
 }
