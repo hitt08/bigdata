@@ -1,26 +1,20 @@
 package mapreduce;
 
 import java.io.IOException;
-import java.util.StringTokenizer;
-
-import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.Mapper.Context;
 
+//Map Class to contribute pagerank score to outlinks 
 public class PageRankMapper extends org.apache.hadoop.mapreduce.Mapper<LongWritable, Text, Text, Text>{
 	private Text _value = new Text();
 	private Text _key = new Text();
-	private String separator = "--!--";
-	
-	
-	//Key -> Line#
-	//Value -> ArticleTitle\tMain
-	
+	private String separator = "--!--";		//Separator for value fields
+
+	//Input Key -> Line# (Default from Text Input Formatter)
+	//
+	//Input Value -> ArticleTitle\tMain		(From Filter Reducer)
 	//OR
-	
-	//Key -> Line#
-	//Value -> ArticleTitle\tCScore--!--Main
+	//Input Value -> ArticleTitle\tCScore--!--Main	(From Previous Round)
 	public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {		
 		String []valuestr = value.toString().split("\t");
 		String secondLine = valuestr[1]; //Main OR CScore PScore--!--Main

@@ -1,8 +1,6 @@
 package mapreduce;
 
 import java.io.IOException;
-import java.util.StringTokenizer;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.Path;
@@ -15,15 +13,16 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 
+//Input Formatter for actual input file
 public class FilterInputFormat extends FileInputFormat<LongWritable, Text> {
 
 	public RecordReader<LongWritable, Text> createRecordReader(InputSplit split, TaskAttemptContext context) {
 		return new InputReader();
 	}
 
-	/////////////////// ? MY RECORD READER//////////////////////
+	/////////////////// RECORD READER//////////////////////
 	static class InputReader extends RecordReader<LongWritable, Text> {
-		private static final byte[] recordSeparator = "\n\n".getBytes();
+		private static final byte[] recordSeparator = "\n\n".getBytes();   //Split file with "\n\n" to each article in every record
 		private FSDataInputStream fsin;
 		private long start, end;
 		private boolean stillInChunk = true;
@@ -61,6 +60,7 @@ public class FilterInputFormat extends FileInputFormat<LongWritable, Text> {
 			}
 		}
 
+		//Read only required Tags and attributes from input file
 		public boolean nextKeyValue() throws IOException {
 			if (!stillInChunk)
 				return false;
@@ -68,16 +68,19 @@ public class FilterInputFormat extends FileInputFormat<LongWritable, Text> {
 
 			Text intermediateText = new Text();
 
-			value = new Text();
+			//value = new Text();
 			intermediateText.set(buffer.getData(), 0, buffer.getLength());
-			String[] tokenizer = intermediateText.toString().split("\n");
-			String[] revisionArray = tokenizer[0].split(" "); // REVISION 12 36302676 Anarchism 2006-01-23T02:39:36Z
-																// RJII 141644
-			value.set(revisionArray[4] + "\n" + revisionArray[3] + "\n" + tokenizer[3]); // Timestam, Article_title,  and
-																							// Main + NEED TO INCLUDE
-																							// PAGERANK FIELD FROM
-																							// REDUCER OUTPUT FILE
-			key.set(Long.valueOf(revisionArray[1])); // Article_id
+			String[] tokenizer = intermediateText.toString().split("\n");	//Split the each article record for each tag per line
+			String[] revisionArray = tokenizer[0].split(" "); 				//Split the REVISION tag with space --> eg (REVISION 12 36302676 Anarchism 2006-01-23T02:39:36Z)
+	
+			/* Set value for mapper as:
+			 * Timestamp
+			 * Article_title
+			 * Main
+			*/value.set(revisionArray[4] + "\n" + revisionArray[3] + "\n" + tokenizer[3]); 
+			
+			//Set Key for mapper as Article_id
+			key.set(Long.valueOf(revisionArray[1])); 
 
 			buffer.reset();
 			if (!status)
