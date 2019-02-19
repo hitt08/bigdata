@@ -20,7 +20,7 @@ public class PageRankMapper extends org.apache.hadoop.mapreduce.Mapper<LongWrita
 	//OR
 	
 	//Key -> Line#
-	//Value -> ArticleTitle\tCScore PScore--!--Main
+	//Value -> ArticleTitle\tCScore--!--Main
 	public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {		
 		String []valuestr = value.toString().split("\t");
 		String secondLine = valuestr[1]; //Main OR CScore PScore--!--Main
@@ -34,8 +34,8 @@ public class PageRankMapper extends org.apache.hadoop.mapreduce.Mapper<LongWrita
 		}else {
 			//CScore PScore\nMain
 			String [] valuesplit = secondLine.split(separator);
-			double currentScore = Double.valueOf(valuesplit[0].split(" ")[0]);
-			double previousScore = Double.valueOf(valuesplit[0].split(" ")[1]);
+			double currentScore = Double.valueOf(valuesplit[0]);//.split(" ")[0]);
+			//double previousScore = Double.valueOf(valuesplit[0].split(" ")[1]);
 			
 		/*if(valuesplit.length > 1) {
 			if(currentScore != previousScore) {

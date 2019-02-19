@@ -17,7 +17,7 @@ public class PageRankReducer extends Reducer<Text, Text, Text, Text> {
 	private Text _key = new Text();
 	private double sum = 0;
 	private String Main = "";
-	private double previousScore = 1;
+	//private double previousScore = 1;
 	private String separator = "--!--";
 	
 	//key -> Title
@@ -37,7 +37,7 @@ public class PageRankReducer extends Reducer<Text, Text, Text, Text> {
 			String [] valuesplit = value_text.toString().split(separator);
 			if(valuesplit.length > 1) {
 				Main = valuesplit[1];
-				previousScore = Double.valueOf(valuesplit[0]);
+				//previousScore = Double.valueOf(valuesplit[0]);
 			}
 			sum += Double.valueOf(valuesplit[0]);
 		}
@@ -50,8 +50,8 @@ public class PageRankReducer extends Reducer<Text, Text, Text, Text> {
 		}else {
 		
 		//Key -> Title
-		//Value -> CScore PScore\nMain
-		_value.set(String.valueOf(sum) + " " + String.valueOf(previousScore) + separator + Main);
+		//Value -> CScore--!--Main
+		_value.set(String.valueOf(sum) + separator + Main);
 		}
 		context.write(key, _value);
 	}
